@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#17251d" />
+  <title>MARJAYUK — Sales Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div id="toast" class="toast" role="status"></div>
+
+  <section id="loginView" class="login-screen">
+    <div class="login-card">
+      <div class="brand-mark">M<span>.</span></div>
+      <p class="eyebrow">MANGO STICKY RICE MANAGEMENT</p>
+      <h1>Selamat datang di<br><span>MARJAYUK.</span></h1>
+      <p class="muted">Kelola pesanan dan pantau perkembangan penjualan dalam satu tempat.</p>
+      <form id="loginForm" class="stack">
+        <label>Email<input id="email" type="email" autocomplete="username" required placeholder="Email akun admin"></label>
+        <label>Password<input id="password" type="password" autocomplete="current-password" required placeholder="Password" minlength="6"></label>
+        <button class="btn primary full" type="submit">Masuk ke dashboard <span>→</span></button>
+      </form>
+      <p class="tiny muted">Akses hanya untuk akun yang telah dibuat melalui Supabase Authentication.</p>
+      <p id="loginError" class="error"></p>
+    </div>
+    <div class="login-side">
+      <div class="side-orb orb-one"></div><div class="side-orb orb-two"></div>
+      <div class="side-copy"><span class="pill light">FRESH · SWEET · SIMPLE</span><h2>Small business.<br>Big possibilities.</h2><p>Satu dashboard untuk setiap pesanan Mango Sticky Rice.</p></div>
+      <div class="mango-art"><div class="mango">🥭</div><div class="rice">MANGO<br>STICKY RICE</div></div>
+    </div>
+  </section>
+
+  <div id="appView" class="app-shell hidden">
+    <aside class="sidebar">
+      <div class="brand"><div class="brand-mark small">M<span>.</span></div><div><strong>MARJAYUK</strong><small>SALES MANAGEMENT</small></div></div>
+      <nav class="nav">
+        <button class="nav-link active" data-page="dashboard"><span>◫</span> Dashboard</button>
+        <button class="nav-link" data-page="orders"><span>▤</span> Manajemen Pesanan</button>
+        <button class="nav-link" data-page="analytics"><span>⌁</span> Analisis Penjualan</button>
+        <button class="nav-link" data-page="reports"><span>▧</span> Laporan</button>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="sync-card"><span class="sync-dot"></span><div><b>Database online</b><small>Sinkronisasi Supabase</small></div></div>
+        <button id="logoutBtn" class="logout">↪ Keluar</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div><p class="eyebrow" id="dateLabel">MARJAYUK / OVERVIEW</p><h1 id="pageTitle">Dashboard</h1></div>
+        <div class="top-actions"><span class="live-status"><i></i> Live sync</span><div class="avatar">M</div></div>
+      </header>
+
+      <section id="dashboardPage" class="page">
+        <div class="welcome-row"><div><h2>Ringkasan penjualan</h2><p class="muted">Pantau pesanan dan pendapatan Mango Sticky Rice.</p></div><button class="btn primary" id="quickAddBtn">＋ Tambah pesanan</button></div>
+        <div class="stat-grid">
+          <article class="stat-card"><div class="stat-top"><span>Total pendapatan diterima</span><span class="stat-icon green">Rp</span></div><strong id="statRevenue">Rp0</strong><small class="muted">Dari pesanan yang sudah dibayar</small></article>
+          <article class="stat-card"><div class="stat-top"><span>Total pesanan</span><span class="stat-icon">▤</span></div><strong id="statOrders">0</strong><small class="muted">Tidak termasuk pesanan batal</small></article>
+          <article class="stat-card"><div class="stat-top"><span>Ukuran kecil terjual</span><span class="stat-icon mango-icon">S</span></div><strong id="statSmall">0</strong><small class="muted">Rp5.000 / porsi</small></article>
+          <article class="stat-card"><div class="stat-top"><span>Ukuran besar terjual</span><span class="stat-icon mango-icon">L</span></div><strong id="statLarge">0</strong><small class="muted">Rp10.000 / porsi</small></article>
+        </div>
+        <div class="content-grid">
+          <article class="panel chart-panel"><div class="panel-heading"><div><h3>Perkembangan pendapatan</h3><p class="muted">Pendapatan dari transaksi yang sudah dibayar</p></div><select id="dashboardPeriod" class="select"><option value="7">7 hari</option><option value="30" selected>30 hari</option><option value="90">90 hari</option></select></div><div class="chart-wrap"><canvas id="dashboardChart"></canvas></div></article>
+          <article class="panel"><div class="panel-heading"><div><h3>Komposisi produk</h3><p class="muted">Jumlah porsi terjual</p></div></div><div class="chart-wrap doughnut-wrap"><canvas id="productChart"></canvas></div><div class="legend-row"><span><i class="legend-dot small-dot"></i>Kecil</span><b id="legendSmall">0</b><span><i class="legend-dot large-dot"></i>Besar</span><b id="legendLarge">0</b></div></article>
+        </div>
+        <article class="panel table-panel"><div class="panel-heading"><div><h3>Pesanan terbaru</h3><p class="muted">Aktivitas pesanan terakhir</p></div><button class="text-btn" data-goto="orders">Lihat semua →</button></div><div class="table-scroll"><table><thead><tr><th>Pelanggan</th><th>Tanggal</th><th>Jumlah</th><th>Total</th><th>Pembayaran</th><th>Status</th></tr></thead><tbody id="recentOrders"><tr><td colspan="6" class="empty">Belum ada data pesanan.</td></tr></tbody></table></div></article>
+      </section>
+
+      <section id="ordersPage" class="page hidden">
+        <div class="welcome-row"><div><h2>Semua pesanan</h2><p class="muted">Catat dan kelola pesanan pelanggan.</p></div><button class="btn primary" id="addOrderBtn">＋ Pesanan baru</button></div>
+        <div class="toolbar"><input id="searchOrders" class="search" placeholder="⌕  Cari nama pelanggan..."><select id="filterPayment" class="select"><option value="">Semua pembayaran</option><option value="paid">Sudah dibayar</option><option value="unpaid">Belum dibayar</option></select><select id="filterStatus" class="select"><option value="">Semua status</option><option value="waiting">Menunggu</option><option value="processing">Diproses</option><option value="completed">Selesai</option><option value="cancelled">Dibatalkan</option></select></div>
+        <article class="panel table-panel"><div class="table-scroll"><table><thead><tr><th>Pelanggan</th><th>Tanggal</th><th>Kecil</th><th>Besar</th><th>Total</th><th>Pembayaran</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="ordersTable"><tr><td colspan="8" class="empty">Memuat data...</td></tr></tbody></table></div></article>
+      </section>
+
+      <section id="analyticsPage" class="page hidden">
+        <div class="welcome-row"><div><h2>Analisis penjualan</h2><p class="muted">Grafik dihitung dari data pesanan di database.</p></div><select id="analyticsPeriod" class="select"><option value="7">7 hari terakhir</option><option value="30" selected>30 hari terakhir</option><option value="90">90 hari terakhir</option><option value="365">12 bulan terakhir</option></select></div>
+        <div class="stat-grid three"><article class="stat-card"><span class="muted">Pendapatan diterima</span><strong id="analyticsRevenue">Rp0</strong></article><article class="stat-card"><span class="muted">Total porsi terjual</span><strong id="analyticsItems">0</strong></article><article class="stat-card"><span class="muted">Rata-rata per pesanan dibayar</span><strong id="analyticsAverage">Rp0</strong></article></div>
+        <article class="panel chart-panel"><div class="panel-heading"><div><h3>Grafik pendapatan</h3><p class="muted">Pendapatan berdasarkan tanggal pembayaran/pesanan</p></div></div><div class="chart-wrap tall"><canvas id="analyticsChart"></canvas></div></article>
+        <div class="content-grid"><article class="panel"><div class="panel-heading"><div><h3>Perbandingan produk</h3><p class="muted">Jumlah porsi terjual</p></div></div><div class="chart-wrap"><canvas id="analyticsProductChart"></canvas></div></article><article class="panel"><h3>Ringkasan produk</h3><div class="summary-line"><span>Mango Sticky Rice kecil</span><b id="analyticsSmall">0 porsi</b></div><div class="summary-line"><span>Mango Sticky Rice besar</span><b id="analyticsLarge">0 porsi</b></div><div class="summary-line"><span>Pesanan dibatalkan</span><b id="analyticsCancelled">0</b></div><p class="tiny muted">Pesanan yang dibatalkan tidak dihitung sebagai penjualan. Pendapatan hanya menghitung transaksi berstatus sudah dibayar.</p></article></div>
+      </section>
+
+      <section id="reportsPage" class="page hidden">
+        <div class="welcome-row"><div><h2>Laporan penjualan</h2><p class="muted">Rekap penjualan berdasarkan rentang tanggal.</p></div><button class="btn secondary" id="exportCsvBtn">↓ Ekspor CSV</button></div>
+        <div class="toolbar"><label class="date-field">Dari tanggal<input type="date" id="reportFrom"></label><label class="date-field">Sampai tanggal<input type="date" id="reportTo"></label><button class="btn primary" id="applyReport">Tampilkan</button></div>
+        <div class="stat-grid three"><article class="stat-card"><span class="muted">Pendapatan diterima</span><strong id="reportRevenue">Rp0</strong></article><article class="stat-card"><span class="muted">Jumlah pesanan</span><strong id="reportOrders">0</strong></article><article class="stat-card"><span class="muted">Total porsi</span><strong id="reportItems">0</strong></article></div>
+        <article class="panel table-panel"><div class="panel-heading"><h3>Rincian laporan</h3></div><div class="table-scroll"><table><thead><tr><th>Tanggal</th><th>Pesanan</th><th>Kecil</th><th>Besar</th><th>Pendapatan diterima</th></tr></thead><tbody id="reportTable"><tr><td colspan="5" class="empty">Pilih rentang tanggal.</td></tr></tbody></table></div></article>
+      </section>
+      <footer>© <span id="year"></span> MARJAYUK <span>·</span> Mango Sticky Rice Sales Management</footer>
+    </main>
+  </div>
+
+  <div id="orderModal" class="modal hidden">
+    <div class="modal-backdrop" data-close="modal"></div>
+    <div class="modal-card"><div class="modal-head"><div><p class="eyebrow">DATA PENJUALAN</p><h2 id="modalTitle">Tambah pesanan</h2></div><button class="close-btn" data-close="modal">×</button></div>
+      <form id="orderForm" class="stack">
+        <input type="hidden" id="orderId">
+        <label>Nama pelanggan<input id="customerName" required maxlength="100" placeholder="Nama pelanggan"></label>
+        <div class="form-two"><label>Tanggal pesanan<input id="orderDate" type="date" required></label><label>WhatsApp (opsional)<input id="whatsapp" maxlength="30" placeholder="08xxxxxxxxxx"></label></div>
+        <div class="quantity-box"><div><span>Mango Sticky Rice kecil</span><b>Rp5.000</b></div><input id="smallQty" type="number" min="0" max="9999" value="0" required></div>
+        <div class="quantity-box"><div><span>Mango Sticky Rice besar</span><b>Rp10.000</b></div><input id="largeQty" type="number" min="0" max="9999" value="0" required></div>
+        <div class="total-box"><span>Total pembayaran</span><strong id="orderTotal">Rp0</strong></div>
+        <div class="form-two"><label>Status pembayaran<select id="paymentStatus"><option value="unpaid">Belum dibayar</option><option value="paid">Sudah dibayar</option></select></label><label>Status pesanan<select id="orderStatus"><option value="waiting">Menunggu</option><option value="processing">Diproses</option><option value="completed">Selesai</option><option value="cancelled">Dibatalkan</option></select></label></div>
+        <label>Catatan (opsional)<textarea id="notes" rows="2" maxlength="500" placeholder="Catatan pesanan..."></textarea></label>
+        <p id="formError" class="error"></p>
+        <div class="modal-actions"><button type="button" class="btn secondary" data-close="modal">Batal</button><button type="submit" class="btn primary" id="saveOrderBtn">Simpan pesanan</button></div>
+      </form>
+    </div>
+  </div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
